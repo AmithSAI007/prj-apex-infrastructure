@@ -1,0 +1,203 @@
+name: INFRASTRUCTURE-PROVISIONING
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target Environment"
+        required: true
+        default: "development"
+        type: choice
+        options:
+          - development
+          - production
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "terraform/**"
+      - ".github/workflows/infrastructure-provisioning.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  issues: write
+
+env:
+  TF_INPUT: false
+  TF_IN_AUTOMATION: true
+  TERRAFORM_VERSION: "1.7.0"
+
+jobs:
+  terraform-validation:
+    name: "Terraform Validation"
+    runs-on: ubuntu-24.04
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.DIR }}
+        run: terraform fmt -check
+        continue-on-error: false
+
+      - name: Terraform Init
+        working-directory: ${{ env.DIR }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: ${{ env.DIR }}
+        run: terraform validate
+
+  terraform-plan:
+    name: "Terraform Plan"
+    needs: terraform-validation
+    runs-on: ubuntu-24.04
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
+
+          if [ "$ENVIRONMENT" == "production" ]; then
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID_PRODUCTION }}" >> $GITHUB_ENV
+            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_PRODUCTION }}" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID_DEVELOPMENT }}" >> $GITHUB_ENV
+            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_DEVELOPMENT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.DIR }}
+        env:
+          TF_VAR_project_id: ${{ env.PROJECT_ID }}
+          TF_VAR_project_region: ${{ env.PROJECT_REGION }}
+        run: |
+          set -o pipefail 
+          terraform plan -input=false -detailed-exitcode -out=tfplan 2>&1 | tee plan.txt
+        continue-on-error: false
+
+      - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('${{ env.DIR }}/plan.txt', 'utf8');
+            const comment = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`hcl
+            ${plan}
+            \`\`\`
+
+            </details>`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            })
+
+      - name: Check Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  terraform-apply:
+    name: "Terraform Apply"
+    needs: terraform-plan
+    runs-on: ubuntu-24.04
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
+          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
+          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
+
+          if [ "$ENVIRONMENT" == "production" ]; then
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID_PRODUCTION }}" >> $GITHUB_ENV
+            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_PRODUCTION }}" >> $GITHUB_ENV
+          else
+            echo "PROJECT_ID=${{ secrets.PROJECT_ID_DEVELOPMENT }}" >> $GITHUB_ENV
+            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_DEVELOPMENT }}" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.DIR }}
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        id: apply
+        working-directory: ${{ env.DIR }}
+        env:
+          TF_VAR_project_id: ${{ env.PROJECT_ID }}
+          TF_VAR_project_region: ${{ env.PROJECT_REGION }}
+
+        run: |
+          set -o pipefail 
+          terraform apply -input=false -auto-approve -no-color 2>&1 | tee apply.txt
+        continue-on-error: false
