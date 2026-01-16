@@ -48,6 +48,9 @@ The service is a serverless, event-driven workflow built entirely on the Google 
 
 This diagram illustrates the journey of a video file from upload to its "ready-to-stream" state.
 
+<img width="1303" height="431" alt="image" src="https://github.com/user-attachments/assets/63d68809-1265-4d08-9598-0a2d23815fb1" />
+
+
 ### 2.3. Sequence Diagram
 
 This diagram shows the sequence of interactions between the components over time.
