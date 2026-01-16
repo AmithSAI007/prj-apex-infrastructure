@@ -48,33 +48,6 @@ The service is a serverless, event-driven workflow built entirely on the Google 
 
 This diagram illustrates the journey of a video file from upload to its "ready-to-stream" state.
 
-```mermaid
-graph TD
-    subgraph "External Services"
-        A[Creator's Upload Client]
-    end
-
-    subgraph "Apex Ingestion & Processing Service (GCP)"
-        B(GCS Bucket<br/>apex-dev-gcs-raw-videos)
-        C{Cloud Function<br/>start-transcode-job}
-        D(Transcoder API)
-        E(GCS Bucket<br/>apex-dev-gcs-processed-videos)
-        F[(Firestore<br/>'videos' collection)]
-        G{Cloud Function<br/>update-video-status}
-        H(Pub/Sub Topic<br/>video-processing-completed)
-    end
-
-    A -- 1. Upload video file with metadata (e.g., videoId) --> B;
-    B -- 2. GCS 'Object Finalize' Event --> C;
-    C -- 3. Creates 'PROCESSING' doc in Firestore --> F;
-    C -- 4. Submits Job to Transcoder API --> D;
-    D -- 5. Reads raw video from --> B;
-    D -- 6. Writes transcoded segments to --> E;
-    D -- 7. Pub/Sub notification on job completion --> G;
-    G -- 8. Updates doc to 'COMPLETED' in Firestore --> F;
-    G -- 9. Publishes event to notify other services --> H;
-```
-
 ### 2.3. Sequence Diagram
 
 This diagram shows the sequence of interactions between the components over time.
