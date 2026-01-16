@@ -16,6 +16,12 @@ variable "project_region" {
   }
 }
 
+variable "transcode_job_template_name" {
+  description = "The name of the Transcoder job template."
+  type        = string
+  default     = "apex-transcoder-job-template"
+}
+
 variable "video_definitions" {
   description = "A map defining the video elementary streams for different qualities (e.g., sd, hd)."
   type = map(object({
