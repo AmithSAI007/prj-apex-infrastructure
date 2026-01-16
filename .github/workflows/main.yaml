@@ -17,6 +17,10 @@ on:
     paths:
       - "terraform/**"
       - ".github/workflows/infrastructure-provisioning.yml"
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/infrastructure-provisioning.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,27 +33,38 @@ permissions:
   issues: write
 
 env:
-  TF_INPUT: false
   TF_IN_AUTOMATION: true
-  TERRAFORM_VERSION: "1.7.0"
+  TERRAFORM_VERSION: "1.1.7"
 
 jobs:
+  determine_environment:
+    name: "Determine Environment"
+    runs-on: ubuntu-24.04
+    outputs:
+      environment: ${{ steps.get_env.outputs.environment }}
+      dir: ${{ steps.get_env.outputs.dir }}
+    steps:
+      - id: get_env
+        name: Set environment output
+        run: |
+          # For PRs, we always target 'development'
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "environment=development" >> $GITHUB_OUTPUT
+            echo "dir=./terraform/environments/development" >> $GITHUB_OUTPUT
+          # For pushes or dispatches, use the branch name or input
+          else
+            ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
+            echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+            echo "dir=./terraform/environments/$ENVIRONMENT" >> $GITHUB_OUTPUT
+          fi
+
   terraform-validation:
     name: "Terraform Validation"
+    needs: determine_environment
     runs-on: ubuntu-24.04
-    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
-
     steps:
-      - name: Set environment variables
-        run: |
-          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
-
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -57,43 +72,25 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Terraform Format Check
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
         run: terraform fmt -check
-        continue-on-error: false
 
       - name: Terraform Init
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
         run: terraform init -backend=false
 
       - name: Terraform Validate
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
         run: terraform validate
 
   terraform-plan:
     name: "Terraform Plan"
-    needs: terraform-validation
+    needs: determine_environment
     runs-on: ubuntu-24.04
-    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
-
+    environment: ${{ needs.determine_environment.outputs.environment }}
     steps:
-      - name: Set environment variables
-        run: |
-          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
-
-          if [ "$ENVIRONMENT" == "production" ]; then
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID_PRODUCTION }}" >> $GITHUB_ENV
-            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_PRODUCTION }}" >> $GITHUB_ENV
-          else
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID_DEVELOPMENT }}" >> $GITHUB_ENV
-            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_DEVELOPMENT }}" >> $GITHUB_ENV
-          fi
-
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -101,25 +98,26 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Authenticate with GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Terraform Init
-        working-directory: ${{ env.DIR }}
-        run: terraform init -input=false
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
+        run: terraform init
 
       - name: Terraform Plan
         id: plan
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
         env:
-          TF_VAR_project_id: ${{ env.PROJECT_ID }}
-          TF_VAR_project_region: ${{ env.PROJECT_REGION }}
+          # The secret names are now generic.
+          TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
+          TF_VAR_project_region: ${{ secrets.PROJECT_REGION }}
         run: |
-          set -o pipefail 
+          set -o pipefail
           terraform plan -input=false -detailed-exitcode -out=tfplan 2>&1 | tee plan.txt
-        continue-on-error: false
+        continue-on-error: true # Allow plan to fail to post comment
 
       - name: Post Plan to PR
         if: github.event_name == 'pull_request'
@@ -127,13 +125,14 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('${{ env.DIR }}/plan.txt', 'utf8');
-            const comment = `#### Terraform Plan 📝\`${{ steps.plan.outcome }}\`
+            const plan = fs.readFileSync('${{ needs.determine_environment.outputs.dir }}/plan.txt', 'utf8');
+            const outcome = '${{ steps.plan.outcome }}' == 'success' ? 'Succeeded' : 'Failed';
+            const comment = `#### Terraform Plan: \`${{ steps.plan.exit_code }}\` (${outcome})
 
             <details><summary>Show Plan</summary>
 
             \`\`\`hcl
-            ${plan}
+            ${plan.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
             \`\`\`
 
             </details>`;
@@ -146,34 +145,19 @@ jobs:
             })
 
       - name: Check Plan Status
-        if: steps.plan.outcome == 'failure'
+        if: steps.plan.outcome == 'failure' || steps.plan.exit_code == '1'
         run: exit 1
 
   terraform-apply:
     name: "Terraform Apply"
-    needs: terraform-plan
+    if: github.event_name != 'pull_request' # Only run apply on merge to main/develop, or dispatch
+    needs: [determine_environment, terraform-plan]
     runs-on: ubuntu-24.04
-    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}
+    environment: ${{ needs.determine_environment.outputs.environment }}
 
     steps:
-      - name: Set environment variables
-        run: |
-          ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
-          echo "ENVIRONMENT=$ENVIRONMENT" >> $GITHUB_ENV
-          echo "DIR=./terraform/environments/$ENVIRONMENT" >> $GITHUB_ENV
-
-          if [ "$ENVIRONMENT" == "production" ]; then
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID_PRODUCTION }}" >> $GITHUB_ENV
-            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_PRODUCTION }}" >> $GITHUB_ENV
-          else
-            echo "PROJECT_ID=${{ secrets.PROJECT_ID_DEVELOPMENT }}" >> $GITHUB_ENV
-            echo "PROJECT_REGION=${{ secrets.PROJECT_REGION_DEVELOPMENT }}" >> $GITHUB_ENV
-          fi
-
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -181,23 +165,18 @@ jobs:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Authenticate with GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: ${{ env.WORKLOAD_IDENTITY }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Terraform Init
-        working-directory: ${{ env.DIR }}
-        run: terraform init -input=false
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
+        run: terraform init
 
       - name: Terraform Apply
-        id: apply
-        working-directory: ${{ env.DIR }}
+        working-directory: ${{ needs.determine_environment.outputs.dir }}
         env:
-          TF_VAR_project_id: ${{ env.PROJECT_ID }}
-          TF_VAR_project_region: ${{ env.PROJECT_REGION }}
-
-        run: |
-          set -o pipefail 
-          terraform apply -input=false -auto-approve -no-color 2>&1 | tee apply.txt
-        continue-on-error: false
+          TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
+          TF_VAR_project_region: ${{ secrets.PROJECT_REGION }}
+        run: terraform apply -input=false -auto-approve
