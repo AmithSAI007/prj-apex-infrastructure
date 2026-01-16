@@ -47,11 +47,9 @@ jobs:
       - id: get_env
         name: Set environment output
         run: |
-          # For PRs, we always target 'development'
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "environment=development" >> $GITHUB_OUTPUT
             echo "dir=./terraform/environments/development" >> $GITHUB_OUTPUT
-          # For pushes or dispatches, use the branch name or input
           else
             ENVIRONMENT="${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'development') }}"
             echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
