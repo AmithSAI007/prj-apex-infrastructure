@@ -165,15 +165,12 @@ jobs:
 
   terraform-apply:
     name: "Terraform Apply"
-    # CORRECTED: Only run on push/dispatch, NOT on pull_request.
     if: github.event_name != 'pull_request'
     needs: [determine_environment, terraform-plan]
     runs-on: ubuntu-24.04
     environment: ${{ needs.determine_environment.outputs.environment }}
 
     steps:
-      # ... steps for checkout, auth, init ...
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
