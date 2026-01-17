@@ -4,6 +4,9 @@ resource "google_transcoder_job_template" "apex_transcoder_job_template" {
   project         = var.project_id
 
   config {
+    pubsub_destination {
+      topic = var.pubsub_topic
+    }
     dynamic "elementary_streams" {
       for_each = var.video_definitions
       content {

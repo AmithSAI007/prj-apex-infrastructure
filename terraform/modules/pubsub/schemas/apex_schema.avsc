@@ -1,0 +1,57 @@
+{
+  "type": "record",
+  "namespace": "com.apex.streaming.events",
+  "name": "TranscoderNotification",
+  "doc": "Represents the message published by the GCP Transcoder API upon job completion.",
+  "fields": [
+    {
+      "name": "job",
+      "type": {
+        "type": "record",
+        "name": "JobResult",
+        "doc": "The result of a single transcoding job.",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string",
+            "doc": "The full resource name of the job, e.g., projects/p/locations/l/jobs/j"
+          },
+          {
+            "name": "state",
+            "type": {
+              "type": "enum",
+              "name": "JobState",
+              "symbols": ["SUCCEEDED", "FAILED", "PENDING", "RUNNING"],
+              "doc": "The final or current state of the transcoding job."
+            }
+          },
+          {
+            "name": "error",
+            "type": [
+              "null",
+              {
+                "type": "record",
+                "name": "ErrorStatus",
+                "doc": "Represents an error object, conforming to Google's RPC status format.",
+                "fields": [
+                  {
+                    "name": "code",
+                    "type": "int",
+                    "doc": "The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code]."
+                  },
+                  {
+                    "name": "message",
+                    "type": "string",
+                    "doc": "A developer-facing error message."
+                  }
+                ]
+              }
+            ],
+            "default": null,
+            "doc": "The error object if the job failed. Null if it succeeded."
+          }
+        ]
+      }
+    }
+  ]
+}

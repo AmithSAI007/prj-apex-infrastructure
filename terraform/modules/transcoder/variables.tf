@@ -57,3 +57,8 @@ variable "audio_definition" {
     bitrate_bps = 64000
   }
 }
+
+variable "pubsub_topic" {
+  description = "The Pub/Sub topic to which the Transcoder job will publish notifications."
+  type        = string
+}
