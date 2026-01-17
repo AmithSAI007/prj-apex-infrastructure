@@ -3,7 +3,7 @@ resource "google_pubsub_schema" "apex_pubsub_schema" {
   name    = var.pubsub_schema_name
 
   type       = "AVRO"
-  definition = file(var.pubsub_schema_definition_file)
+  definition = file("${path.module}/schemas/apex_schema.avsc")
 }
 
 resource "google_pubsub_topic" "apex_pubsub_topic" {
