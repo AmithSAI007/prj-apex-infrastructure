@@ -13,13 +13,6 @@ variable "pubsub_schema_name" {
   default     = "apex-pubsub-schema"
 }
 
-variable "pubsub_schema_definition_file" {
-  description = "The file path to the Pub/Sub schema definition."
-  type        = string
-  default     = "./schemas/apex_schema.avsc"
-}
-
-
 variable "pubsub_topic_name" {
   description = "The name of the Pub/Sub topic."
   type        = string
