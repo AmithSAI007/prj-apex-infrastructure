@@ -59,6 +59,26 @@ jobs:
             echo "dir=./terraform/environments/$ENVIRONMENT" >> $GITHUB_OUTPUT
           fi
 
+  prepare-terraform-vars:
+    name: "Prepare Terraform Variables"
+    runs-on: ubuntu-latest
+    needs: build
+    outputs:
+      tf_vars_json: ${{ steps.build_json.outputs.json }}
+
+    steps:
+      - name: "Build Terraform Vars JSON"
+        id: build_json
+        run: |
+          JSON_STRING=$(jq -n \
+            --arg project_id "${{ secrets.GCP_PROJECT_ID }}" \
+            --arg project_region "${{ secrets.GCP_PROJECT_REGION }}" \
+            '{project_id: $project_id, project_region: $project_region}')
+
+          echo "json<<EOF" >> $GITHUB_OUTPUT
+          echo "$JSON_STRING" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   call-reusable-terraform:
     name: "Execute Terraform Core Logic"
     needs: determine_environment
@@ -68,11 +88,8 @@ jobs:
       environment: ${{ needs.determine_environment.outputs.environment }}
       terraform_directory: ${{ needs.determine_environment.outputs.dir }}
       is_pull_request: ${{ github.event_name == 'pull_request' }}
-      terraform_vars_json: |
-        {
-          "project_id": "${{ secrets.GCP_PROJECT_ID }}",
-          "project_region": "${{ secrets.GCP_PROJECT_REGION }}"
-        }
+      terraform_vars_json: ${{ needs.prepare-terraform-vars.outputs.tf_vars_json }}
+
     secrets:
       GCP_PROJECT_ID: ${{ secrets.PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY }}
