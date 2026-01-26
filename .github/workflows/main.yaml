@@ -81,13 +81,15 @@ jobs:
 
   call-reusable-terraform:
     name: "Execute Terraform Core Logic"
-    needs: prepare-terraform-vars
+    needs: [determine_environment, prepare-terraform-vars]
     uses: ./.github/workflows/reusable-terraform-core.yaml
-
     with:
       environment: ${{ needs.determine_environment.outputs.environment }}
       terraform_directory: ${{ needs.determine_environment.outputs.dir }}
       is_pull_request: ${{ github.event_name == 'pull_request' }}
       terraform_vars_json: ${{ needs.prepare-terraform-vars.outputs.tf_vars_json }}
 
-    secrets: inherit
+    secrets:
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
