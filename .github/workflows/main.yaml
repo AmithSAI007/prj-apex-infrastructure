@@ -59,139 +59,19 @@ jobs:
             echo "dir=./terraform/environments/$ENVIRONMENT" >> $GITHUB_OUTPUT
           fi
 
-  terraform-validation:
-    name: "Terraform Validation"
+  call-reusable-terraform:
+    name: "Execute Terraform Core Logic"
     needs: determine_environment
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+    uses: ./.github/workflows/reusable-terraform-core.yml
 
-      - name: Terraform Format Check
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        run: terraform fmt -check
+    with:
+      environment: ${{ needs.determine_environment.outputs.environment }}
+      terraform_directory: ${{ needs.determine_environment.outputs.dir }}
+      is_pull_request: ${{ github.event_name == 'pull_request' }}
 
-      - name: Terraform Init (for validation)
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        run: terraform init -backend=false
-
-      - name: Terraform Validate
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        run: terraform validate
-
-  terraform-plan:
-    name: "Terraform Plan"
-    needs: [determine_environment, terraform-validation]
-    runs-on: ubuntu-24.04
-    environment: ${{ needs.determine_environment.outputs.environment }}
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Authenticate with GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
-
-      - name: Terraform Init
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        run: terraform init
-
-      - name: Terraform Plan
-        id: plan
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        env:
-          TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
-          TF_VAR_project_region: ${{ secrets.PROJECT_REGION }}
-        run: |
-          terraform plan -input=false -detailed-exitcode -out=tfplan -no-color
-        continue-on-error: true
-
-      - name: Post Plan to PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { readFileSync } = require('fs');
-            const planOutput = readFileSync("${{ needs.determine_environment.outputs.dir }}/tfplan", "utf8");
-
-            // Logic to format the plan for posting
-            // This is a placeholder, you might need a more robust script here
-            const output = `#### Terraform Plan Result: \`${{ steps.plan.outcome }}\`
-
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform
-            ${planOutput}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
-
-      - name: Exit with plan status
-        if: steps.plan.exitcode == 2
-        run: |
-          echo "Terraform plan has changes."
-          exit 0 # Succeed to allow apply job to run
-      - if: steps.plan.outputs.exitcode == 1
-        run: |
-          echo "Error running terraform plan."
-          exit 1
-      - if: steps.plan.outputs.exitcode == 0
-        run: |
-          echo "Terraform plan has no changes."
-          exit 0
-
-  terraform-apply:
-    name: "Terraform Apply"
-    if: github.event_name != 'pull_request'
-    needs: [determine_environment, terraform-plan]
-    runs-on: ubuntu-24.04
-    environment: ${{ needs.determine_environment.outputs.environment }}
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-
-      - name: Authenticate with GCP
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
-
-      - name: Terraform Init
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        run: terraform init
-
-      - name: Terraform Apply
-        working-directory: ${{ needs.determine_environment.outputs.dir }}
-        env:
-          TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
-          TF_VAR_project_region: ${{ secrets.PROJECT_REGION }}
-        run: terraform apply -input=false -auto-approve
+    secrets:
+      GCP_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+      TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET }}
