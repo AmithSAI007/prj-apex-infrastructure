@@ -62,7 +62,7 @@ jobs:
   prepare-terraform-vars:
     name: "Prepare Terraform Variables"
     runs-on: ubuntu-latest
-    needs: build
+    needs: determine_environment
     outputs:
       tf_vars_json: ${{ steps.build_json.outputs.json }}
 
@@ -81,7 +81,7 @@ jobs:
 
   call-reusable-terraform:
     name: "Execute Terraform Core Logic"
-    needs: determine_environment
+    needs: prepare-terraform-vars
     uses: ./.github/workflows/reusable-terraform-core.yaml
 
     with:
