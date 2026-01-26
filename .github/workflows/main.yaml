@@ -69,11 +69,10 @@ jobs:
       terraform_directory: ${{ needs.determine_environment.outputs.dir }}
       is_pull_request: ${{ github.event_name == 'pull_request' }}
       terraform_vars_json: |
-        ${{ toJSON({
-          project_id: secrets.GCP_PROJECT_ID,
-          project_region: secrets.GCP_PROJECT_REGION,
-        }) }}
-
+        {
+          "project_id": "${{ secrets.GCP_PROJECT_ID }}",
+          "project_region": "${{ secrets.GCP_PROJECT_REGION }}"
+        }
     secrets:
       GCP_PROJECT_ID: ${{ secrets.PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY }}
