@@ -12,6 +12,10 @@ on:
       is_pull_request:
         required: true
         type: boolean
+      terraform_vars_json:
+        required: false
+        type: string
+        default: "{}"
     secrets:
       GCP_PROJECT_ID:
         required: true
@@ -42,6 +46,10 @@ jobs:
 
       - name: "Setup Terraform"
         uses: hashicorp/setup-terraform@v3
+
+      - name: "Create Terraform variables file from JSON"
+        if: ${{ inputs.terraform_vars_json != '{}' }}
+        run: echo '${{ inputs.terraform_vars_json }}' > variables.auto.tfvars.json
 
       - name: "Terraform Init"
         run: |
