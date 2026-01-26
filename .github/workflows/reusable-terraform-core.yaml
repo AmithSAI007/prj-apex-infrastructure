@@ -19,9 +19,6 @@ on:
         required: true
       GCP_SERVICE_ACCOUNT:
         required: true
-      TF_STATE_BUCKET_NAME:
-        required: true
-
 jobs:
   terraform:
     name: "Terraform Plan & Apply"
@@ -48,7 +45,7 @@ jobs:
 
       - name: "Terraform Init"
         run: |
-          terraform init -backend-config="bucket=${{ secrets.TF_STATE_BUCKET_NAME }}"
+          terraform init
 
       - name: "Terraform Validate"
         run: terraform validate

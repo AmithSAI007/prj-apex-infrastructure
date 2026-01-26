@@ -62,7 +62,6 @@ jobs:
   call-reusable-terraform:
     name: "Execute Terraform Core Logic"
     needs: determine_environment
-
     uses: ./.github/workflows/reusable-terraform-core.yaml
 
     with:
@@ -74,4 +73,3 @@ jobs:
       GCP_PROJECT_ID: ${{ secrets.PROJECT_ID }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
-      TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET }}
