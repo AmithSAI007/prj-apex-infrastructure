@@ -63,7 +63,7 @@ jobs:
     name: "Execute Terraform Core Logic"
     needs: determine_environment
 
-    uses: ./.github/workflows/reusable-terraform-core.yml
+    uses: ./.github/workflows/reusable-terraform-core.yaml
 
     with:
       environment: ${{ needs.determine_environment.outputs.environment }}
