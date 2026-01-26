@@ -75,4 +75,3 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
       TF_STATE_BUCKET_NAME: ${{ secrets.TF_STATE_BUCKET }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

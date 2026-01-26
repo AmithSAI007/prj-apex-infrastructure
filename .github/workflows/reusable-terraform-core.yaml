@@ -21,8 +21,6 @@ on:
         required: true
       TF_STATE_BUCKET_NAME:
         required: true
-      GITHUB_TOKEN:
-        required: false
 
 jobs:
   terraform:
