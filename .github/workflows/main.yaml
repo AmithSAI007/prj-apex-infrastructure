@@ -61,7 +61,7 @@ jobs:
 
   prepare-terraform-vars:
     name: "Prepare Terraform Variables"
-    environment: ${{ needs.determine_environment.outputs.environment }}
+    environment: development
     runs-on: ubuntu-latest
     needs: determine_environment
     outputs:
