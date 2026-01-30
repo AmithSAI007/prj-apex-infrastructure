@@ -19,10 +19,11 @@ on:
         required: true
       SERVICE_ACCOUNT:
         required: true
-      TF_VAR_PROJECT_ID:
-        required: true
-      TF_VAR_PROJECT_REGION:
-        required: true
+
+env:
+  TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
+  TF_VAR_project_region: ${{ secrets.PROJECT_REGION }}
+
 jobs:
   terraform:
     name: "Terraform Plan & Apply"
