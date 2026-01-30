@@ -12,6 +12,6 @@ variable "project_region" {
   description = "The GCP region where the resources will be deployed, impacting latency and compliance."
   validation {
     condition     = length(var.project_region) > 0
-    error_message = "The project_region must be specified"
+    error_message = "The project_region must be specified."
   }
 }

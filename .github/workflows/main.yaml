@@ -88,8 +88,4 @@ jobs:
       terraform_directory: ${{ needs.determine_environment.outputs.dir }}
       is_pull_request: ${{ github.event_name == 'pull_request' }}
       terraform_vars_json: ${{ needs.prepare-terraform-vars.outputs.tf_vars_json }}
-
-    secrets:
-      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+    secrets: inherit

@@ -24,62 +24,75 @@ on:
       GCP_SERVICE_ACCOUNT:
         required: true
 jobs:
-  terraform:
-    name: "Terraform Plan & Apply"
+  print:
+    name: "Print Inputs"
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-
-    defaults:
-      run:
-        working-directory: ${{ inputs.terraform_directory }}
-
     steps:
-      - name: "Checkout Code"
-        uses: actions/checkout@v4
-
-      - name: "Authenticate to Google Cloud"
-        uses: "google-github-actions/auth@v2"
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-
-      - name: "Setup Terraform"
-        uses: hashicorp/setup-terraform@v3
-
-      - name: "Create Terraform variables file from JSON"
-        if: ${{ inputs.terraform_vars_json != '{}' }}
-        run: echo '${{ inputs.terraform_vars_json }}' > variables.auto.tfvars.json
-
-      - name: "Terraform Init"
+      - name: "Print Input Values"
         run: |
-          terraform init
-
-      - name: "Terraform Validate"
-        run: terraform validate
-
-      - name: "Terraform Plan"
-        id: plan
-        run: terraform plan -no-color -input=false -out=tfplan
-
-      - name: "Post Plan to PR Comment"
-        if: ${{ inputs.is_pull_request == true }}
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // ... Your script to format and post the plan output ...
-            // This is kept separate for clarity.
-            const { readFileSync } = require('fs');
-            const planOutput = readFileSync(`${{ inputs.terraform_directory }}/tfplan`, "utf8");
-            const output = `#### Terraform Plan Result:\n\n<details><summary>Show Plan</summary>\n\n\`\`\`terraform\n${planOutput}\n\`\`\`\n\n</details>`;
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
-
-      - name: "Terraform Apply"
-        if: ${{ inputs.is_pull_request == false }}
-        run: terraform apply -auto-approve -input=false tfplan
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Terraform Directory: ${{ inputs.terraform_directory }}"
+          echo "Is Pull Request: ${{ inputs.is_pull_request }}"
+          echo "Terraform Vars JSON: ${{ inputs.terraform_vars_json }}"
+          echo "GCP Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+          echo "GCP Workload Identity Provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+          echo "GCP Service Account: ${{ secrets.GCP_SERVICE_ACCOUNT }}"
+  # terraform:
+  #   name: "Terraform Plan & Apply"
+  #   runs-on: ubuntu-latest
+  #   environment: ${{ inputs.environment }}
+  #
+  #   defaults:
+  #     run:
+  #       working-directory: ${{ inputs.terraform_directory }}
+  #
+  #   steps:
+  #     - name: "Checkout Code"
+  #       uses: actions/checkout@v4
+  #
+  #     - name: "Authenticate to Google Cloud"
+  #       uses: "google-github-actions/auth@v2"
+  #       with:
+  #         project_id: ${{ secrets.GCP_PROJECT_ID }}
+  #         workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  #         service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+  #
+  #     - name: "Setup Terraform"
+  #       uses: hashicorp/setup-terraform@v3
+  #
+  #     - name: "Create Terraform variables file from JSON"
+  #       if: ${{ inputs.terraform_vars_json != '{}' }}
+  #       run: echo '${{ inputs.terraform_vars_json }}' > variables.auto.tfvars.json
+  #
+  #     - name: "Terraform Init"
+  #       run: |
+  #         terraform init
+  #
+  #     - name: "Terraform Validate"
+  #       run: terraform validate
+  #
+  #     - name: "Terraform Plan"
+  #       id: plan
+  #       run: terraform plan -no-color -input=false -out=tfplan
+  #
+  #     - name: "Post Plan to PR Comment"
+  #       if: ${{ inputs.is_pull_request == true }}
+  #       uses: actions/github-script@v7
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         script: |
+  #           // ... Your script to format and post the plan output ...
+  #           // This is kept separate for clarity.
+  #           const { readFileSync } = require('fs');
+  #           const planOutput = readFileSync(`${{ inputs.terraform_directory }}/tfplan`, "utf8");
+  #           const output = `#### Terraform Plan Result:\n\n<details><summary>Show Plan</summary>\n\n\`\`\`terraform\n${planOutput}\n\`\`\`\n\n</details>`;
+  #           await github.rest.issues.createComment({
+  #             issue_number: context.issue.number,
+  #             owner: context.repo.owner,
+  #             repo: context.repo.repo,
+  #             body: output
+  #           });
+  #
+  #     - name: "Terraform Apply"
+  #       if: ${{ inputs.is_pull_request == false }}
+  #       run: terraform apply -auto-approve -input=false tfplan
