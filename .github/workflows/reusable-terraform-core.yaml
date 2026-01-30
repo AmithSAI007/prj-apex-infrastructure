@@ -39,9 +39,9 @@ jobs:
       - name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@v2"
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          project_id: ${{ secrets.PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: "Setup Terraform"
         uses: hashicorp/setup-terraform@v3
