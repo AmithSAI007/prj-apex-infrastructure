@@ -67,4 +67,5 @@ jobs:
       environment: ${{ needs.determine_environment.outputs.environment }}
       terraform_directory: ${{ needs.determine_environment.outputs.dir }}
       is_pull_request: ${{ github.event_name == 'pull_request' }}
+
     secrets: inherit
