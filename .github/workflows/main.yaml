@@ -70,15 +70,15 @@ jobs:
     steps:
       - name: "Print Secrets"
         run: |
-          echo "GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}"
-          echo "GCP_PROJECT_REGION: ${{ secrets.GCP_PROJECT_REGION }}"
+          echo "GCP_PROJECT_ID: ${{ secrets.PROJECT_ID }}"
+          echo "GCP_PROJECT_REGION: ${{ secrets.PROJECT_REGION }}"
 
       - name: "Build Terraform Vars JSON"
         id: build_json
         run: |
           JSON_STRING=$(jq -n \
-            --arg project_id "${{ secrets.GCP_PROJECT_ID }}" \
-            --arg project_region "${{ secrets.GCP_PROJECT_REGION }}" \
+            --arg project_id "${{ secrets.PROJECT_ID }}" \
+            --arg project_region "${{ secrets.PROJECT_REGION }}" \
             '{project_id: $project_id, project_region: $project_region}')
 
           echo "json<<EOF" >> $GITHUB_OUTPUT
