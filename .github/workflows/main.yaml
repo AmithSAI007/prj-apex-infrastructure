@@ -16,14 +16,14 @@ on:
       - develop
     paths:
       - "terraform/**"
-      - ".github/workflows/infrastructure-provisioning.yml"
+      - ".github/workflows/main.yaml"
   pull_request:
     branches:
       - main
       - develop
     paths:
       - "terraform/**"
-      - ".github/workflows/infrastructure-provisioning.yml"
+      - ".github/workflows/main.yaml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -67,6 +67,11 @@ jobs:
       tf_vars_json: ${{ steps.build_json.outputs.json }}
 
     steps:
+      - name: "Print Secrets"
+        run: |
+          echo "GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}"
+          echo "GCP_PROJECT_REGION: ${{ secrets.GCP_PROJECT_REGION }}"
+
       - name: "Build Terraform Vars JSON"
         id: build_json
         run: |
