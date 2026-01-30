@@ -1,5 +1,5 @@
 resource "google_pubsub_schema" "apex_pubsub_schema" {
-  project = var.project_id
+  project = var.PROJECT_ID
   name    = var.pubsub_schema_name
 
   type       = "AVRO"
@@ -7,7 +7,7 @@ resource "google_pubsub_schema" "apex_pubsub_schema" {
 }
 
 resource "google_pubsub_topic" "apex_pubsub_topic" {
-  project = var.project_id
+  project = var.PROJECT_ID
   name    = var.pubsub_topic_name
 
   schema_settings {

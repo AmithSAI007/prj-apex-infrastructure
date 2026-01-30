@@ -1,17 +1,17 @@
 module "storage" {
   source     = "../../modules/storage"
-  project_id = var.project_id
+  PROJECT_ID = var.PROJECT_ID
 }
 
 module "pubsub" {
   source     = "../../modules/pubsub"
-  project_id = var.project_id
+  PROJECT_ID = var.PROJECT_ID
 }
 
 module "transcoder" {
   source            = "../../modules/transcoder"
-  project_id        = var.project_id
-  project_region    = var.project_region
+  PROJECT_ID        = var.PROJECT_ID
+  PROJECT_REGION    = var.PROJECT_REGION
   video_definitions = var.video_definitions
   audio_definition  = var.audio_definition
   pubsub_topic      = module.pubsub.topic_id
