@@ -18,7 +18,7 @@ module "transcoder" {
 }
 
 module "registry" {
-  source         = "../../modules/artifact-registry"
+  source         = "../../modules/registry"
   project_id     = var.project_id
   project_region = var.project_region
 }
