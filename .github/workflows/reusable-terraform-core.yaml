@@ -19,6 +19,8 @@ on:
         required: true
       SERVICE_ACCOUNT:
         required: true
+      PROJECT_REGION:
+        required: true
 
 env:
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
