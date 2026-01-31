@@ -16,3 +16,9 @@ module "transcoder" {
   audio_definition  = var.audio_definition
   pubsub_topic      = module.pubsub.topic_id
 }
+
+module "registry" {
+  source         = "../../modules/artifact-registry"
+  project_id     = var.project_id
+  project_region = var.project_region
+}
