@@ -22,5 +22,5 @@ variable "processed_videos_bucket_name" {
 variable "bucket_location" {
   type        = string
   description = "The location where the GCS bucket will be created."
-  default     = "US"
+  default     = "asia-south1"
 }
