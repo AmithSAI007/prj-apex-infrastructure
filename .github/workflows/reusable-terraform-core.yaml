@@ -12,6 +12,10 @@ on:
       is_pull_request:
         required: true
         type: boolean
+      terraform_args:
+        required: false
+        type: string
+        default: ""
     secrets:
       PROJECT_ID:
         required: true
@@ -58,7 +62,7 @@ jobs:
 
       - name: "Terraform Plan"
         id: plan
-        run: terraform plan -no-color -input=false -out=tfplan
+        run: terraform plan -no-color -input=false ${{ inputs.terraform_args }} -out=tfplan
 
       - name: "Post Plan to PR Comment"
         if: ${{ inputs.is_pull_request == true }}
