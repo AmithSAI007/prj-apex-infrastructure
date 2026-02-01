@@ -10,11 +10,11 @@ variable "project_id" {
 variable "pubsub_schema_name" {
   description = "The name of the Pub/Sub schema."
   type        = string
-  default     = "apex-pubsub-schema"
+  default     = "apex-transcoder-schema"
 }
 
 variable "pubsub_topic_name" {
   description = "The name of the Pub/Sub topic."
   type        = string
-  default     = "apex-pubsub-topic"
+  default     = "apex-transcoder-status-topic"
 }
