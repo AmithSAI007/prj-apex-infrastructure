@@ -43,6 +43,12 @@ jobs:
       - name: "Checkout Code"
         uses: actions/checkout@v4
 
+      - name: "Download Terraform Config"
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-config
+          path: ${{ inputs.terraform_directory }}
+
       - name: "Authenticate to Google Cloud"
         uses: "google-github-actions/auth@v2"
         with:
@@ -62,7 +68,7 @@ jobs:
 
       - name: "Terraform Plan"
         id: plan
-        run: terraform plan -no-color -input=false ${{ inputs.terraform_args }} -out=tfplan
+        run: terraform plan -no-color -input=false -var-file="deploy.tfvars.json" -out=tfplan
 
       - name: "Post Plan to PR Comment"
         if: ${{ inputs.is_pull_request == true }}
