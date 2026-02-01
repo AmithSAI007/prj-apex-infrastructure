@@ -12,6 +12,10 @@ on:
       is_pull_request:
         required: true
         type: boolean
+      terraform_args:
+        required: false
+        type: string
+        default: ""
     secrets:
       PROJECT_ID:
         required: true
