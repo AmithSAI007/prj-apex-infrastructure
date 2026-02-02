@@ -68,7 +68,6 @@ jobs:
         run: |
           cat <<EOF > deploy.tfvars.json
           {
-            "deployment_timestamp": "$(date +%s)",
             "app_version": "${{ github.sha }}"
           }
           EOF
