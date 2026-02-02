@@ -19,7 +19,7 @@ variable "project_region" {
 variable "database_name" {
   type        = string
   description = "The name of the Firestore database instance."
-  default     = "(default)"
+  default     = "apex-firestore-db"
 }
 
 variable "database_type" {
