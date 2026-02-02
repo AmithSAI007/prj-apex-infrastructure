@@ -22,3 +22,9 @@ module "registry" {
   project_id     = var.project_id
   project_region = var.project_region
 }
+
+module "firestore" {
+  source         = "../../modules/firestore"
+  project_id     = var.project_id
+  project_region = var.project_region
+}
