@@ -10,8 +10,8 @@ resource "google_pubsub_topic" "apex_pubsub_topic" {
   project = var.project_id
   name    = var.pubsub_topic_name
 
-  schema_settings {
-    schema   = google_pubsub_schema.apex_pubsub_schema.id
-    encoding = "JSON"
-  }
+  # schema_settings {
+  #   schema   = google_pubsub_schema.apex_pubsub_schema.id
+  #   encoding = "JSON"
+  # }
 }
