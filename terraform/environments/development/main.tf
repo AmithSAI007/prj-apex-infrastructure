@@ -8,6 +8,11 @@ module "pubsub" {
   project_id = var.project_id
 }
 
+module "iam" {
+  source       = "../../modules/iam"
+  pubsub_topic = module.pubsub.topic_id
+}
+
 module "transcoder" {
   source            = "../../modules/transcoder"
   project_id        = var.project_id
