@@ -24,3 +24,9 @@ variable "bucket_location" {
   description = "The location where the GCS bucket will be created."
   default     = "asia-south1"
 }
+
+variable "video_metadata_bucket_name" {
+  type        = string
+  description = "The name of the GCS bucket for video metadata."
+  default     = "apex-dev-gcs-video-metadata"
+}
