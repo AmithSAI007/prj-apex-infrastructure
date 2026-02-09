@@ -13,3 +13,11 @@ resource "google_storage_bucket" "apex_dev_gcs_processed_videos" {
   project                     = var.project_id
   uniform_bucket_level_access = true
 }
+
+resource "google_storage_bucket" "apex-dev-gcs-video-metadata" {
+  name                        = var.video_metadata_bucket_name
+  location                    = var.bucket_location
+  force_destroy               = true
+  project                     = var.project_id
+  uniform_bucket_level_access = true
+}
