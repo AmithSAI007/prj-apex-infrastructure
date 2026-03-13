@@ -57,3 +57,15 @@ variable "message_retention_duration" {
   type        = string
   default     = "604800s" # 7 days
 }
+
+variable "ack_deadline_seconds" {
+  description = "The acknowledgment deadline for Pub/Sub messages in seconds."
+  type        = number
+  default     = 60
+}
+
+variable "max_delivery_attempts" {
+  description = "The maximum number of delivery attempts for a Pub/Sub message before it is sent to the dead letter topic."
+  type        = number
+  default     = 5
+}
