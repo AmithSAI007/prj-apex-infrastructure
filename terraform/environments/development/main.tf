@@ -9,7 +9,7 @@ module "pubsub" {
 module "storage" {
   source                                 = "../../modules/storage"
   project_id                             = var.project_id
-  apex_video_ingestion_pubsub_topic_name = module.pubsub.video_ingestion_topic_name
+  apex_video_ingestion_pubsub_topic_name = module.pubsub.video_ingestion_topic_id
 }
 
 module "iam" {
