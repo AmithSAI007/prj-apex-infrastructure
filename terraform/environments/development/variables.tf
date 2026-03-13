@@ -51,3 +51,9 @@ variable "audio_definition" {
     bitrate_bps = 64000
   }
 }
+
+variable "message_retention_duration" {
+  description = "The duration for which messages are retained in the Pub/Sub topic (in seconds)."
+  type        = string
+  default     = "604800s" # 7 days
+}
