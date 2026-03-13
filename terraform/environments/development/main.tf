@@ -1,11 +1,15 @@
-module "storage" {
-  source     = "../../modules/storage"
-  project_id = var.project_id
+module "pubsub" {
+  source                     = "../../modules/pubsub"
+  project_id                 = var.project_id
+  message_retention_duration = var.message_retention_duration
+  ack_deadline_seconds       = var.ack_deadline_seconds
+  max_delivery_attempts      = var.max_delivery_attempts
 }
 
-module "pubsub" {
-  source     = "../../modules/pubsub"
-  project_id = var.project_id
+module "storage" {
+  source                                 = "../../modules/storage"
+  project_id                             = var.project_id
+  apex_video_ingestion_pubsub_topic_name = module.pubsub.video_ingestion_topic_name
 }
 
 module "iam" {

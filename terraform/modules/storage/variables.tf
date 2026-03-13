@@ -30,3 +30,8 @@ variable "video_metadata_bucket_name" {
   description = "The name of the GCS bucket for video metadata."
   default     = "apex-dev-gcs-video-metadata"
 }
+
+variable "apex_video_ingestion_pubsub_topic_name" {
+  description = "The name of the Pub/Sub topic for video ingestion notifications."
+  type        = string
+}
