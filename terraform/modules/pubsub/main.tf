@@ -42,7 +42,7 @@ resource "google_pubsub_subscription" "apex_video_ingestion_subscription" {
 }
 
 resource "google_pubsub_subscription" "apex_video_ingestion_dead_letter_subscription" {
-  name    = var.apex_video_ingestion_subscription_name
+  name    = var.apex_video_ingestion_dead_letter_subscription_name
   topic   = google_pubsub_topic.apex_video_ingestion_dead_letter_topic.id
   project = var.project_id
 
