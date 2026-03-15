@@ -7,3 +7,8 @@ variable "dead_letter_topic_name" {
   description = "The name of the Pub/Sub topic to be used as a dead letter topic for the video ingestion subscription."
   type        = string
 }
+
+variable "dead_letter_subscription_name" {
+  description = "The name of the Pub/Sub subscription to be used for the dead letter topic in the video ingestion subscription."
+  type        = string
+}
