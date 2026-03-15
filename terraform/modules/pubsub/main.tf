@@ -40,3 +40,15 @@ resource "google_pubsub_subscription" "apex_video_ingestion_subscription" {
     max_delivery_attempts = 5
   }
 }
+
+resource "google_pubsub_subscription" "apex_video_ingestion_dead_letter_subscription" {
+  name    = var.apex_video_ingestion_subscription_name
+  topic   = google_pubsub_topic.apex_video_ingestion_dead_letter_topic.id
+  project = var.project_id
+
+  expiration_policy {
+    ttl = ""
+  }
+
+  message_retention_duration = var.message_retention_duration
+}
