@@ -15,8 +15,8 @@ module "storage" {
 module "iam" {
   source                        = "../../modules/iam"
   pubsub_topic                  = module.pubsub.topic_id
-  dead_letter_subscription_name = module.pubsub.video_ingestion_dead_letter_subscription_id
   dead_letter_topic_name        = module.pubsub.video_ingestion_dead_letter_topic_id
+  dead_letter_subscription_name = module.pubsub.video_ingestion_dead_letter_subscription_id
 }
 
 module "transcoder" {
