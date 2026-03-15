@@ -36,6 +36,12 @@ variable "apex_video_ingestion_subscription_name" {
   default     = "apex.video-ingestion.gcs.object-finalized.ingestion-service"
 }
 
+variable "apex_video_ingestion_dead_letter_subscription_name" {
+  description = "The name of the Pub/Sub subscription for video ingestion."
+  type        = string
+  default     = "apex.video-ingestion.gcs.object-finalized.ingestion-service.dla.subscription"
+}
+
 variable "pubsub_video_ingestion_dead_letter_topic_name" {
   description = "The name of the Pub/Sub topic for dead letter messages from video ingestion."
   type        = string
