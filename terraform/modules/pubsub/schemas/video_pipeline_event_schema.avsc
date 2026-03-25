@@ -1,0 +1,51 @@
+{
+	"type": "record",
+	"namespace": "com.apex.streaming.events",
+	"name": "PipelineEvent",
+	"doc": "Published by apex-transcoder-callback-service to apex.video-processing.pipeline.completed after a transcoding job reaches a terminal state.",
+	"fields": [
+		{
+			"name": "videoId",
+			"type": "string",
+			"doc": "UUID of the video"
+		},
+		{
+			"name": "userId",
+			"type": "string",
+			"doc": "UUID of the user who uploaded the video"
+		},
+		{
+			"name": "status",
+			"type": {
+				"type": "enum",
+				"name": "PipelineStatus",
+				"symbols": ["COMPLETED", "FAILED"]
+			}
+			"doc": "Terminal status of the video processing pipeline"
+		},
+		{
+			"name": "outputManifestPath",
+			"type": [null, "string"]
+			"default": null,
+			"doc": "GCS URI to the HLS master playlist. Present only when status is COMPLETED"
+		},
+		{
+			"name": "errorCode",
+			"type": [null, "int"]
+			"default": null,
+			"doc": "gRPC/HTTP error code from the Transcoder API. Present only when status is FAILED"
+		},
+		{
+			"name": "errorMessage",
+			"type": [null, "string"]
+			"default": null,
+			"doc": "Human-readable error description. Present only when status if FAILED"
+		},
+		{
+			"name": "completedAt",
+			"type": "string"
+			"default": null,
+			"doc": "RFC 3339 timestamp of when the callback service processed the event"
+		},
+	]
+}
