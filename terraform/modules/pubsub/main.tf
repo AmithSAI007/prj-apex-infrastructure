@@ -69,14 +69,13 @@ resource "google_pubsub_topic" "apex_pubsub_topic_for_video_pipeline_events" {
   name    = var.apex_video_processing_topic_name
 
   schema_settings {
-    schema   = apex_video_pipeline_event_schema.id
+    schema   = google_pubsub_schema.apex_video_pipeline_event_schema.id
     encoding = "JSON"
   }
 }
 
 resource "google_pubsub_subscription" "apex_video_pipeline_event_subscription" {
-  name  = var.apex_video_processing_subscription_name
-  topic = google_pubsub_topic.apex_pubsub_topic_for_video_pipeline_events.id
-
+  name                 = var.apex_thumbnail_generation_subscription_name
+  topic                = google_pubsub_topic.apex_pubsub_topic_for_video_pipeline_events.id
   ack_deadline_seconds = 180
 }
