@@ -16,42 +16,6 @@ variable "project_region" {
   }
 }
 
-variable "video_definitions" {
-  description = "A map defining the video elementary streams for different qualities (e.g., sd, hd)."
-  type = map(object({
-    width_pixels  = number
-    height_pixels = number
-    bitrate_bps   = number
-    frame_rate    = number
-  }))
-  default = {
-    "sd" = {
-      width_pixels  = 640
-      height_pixels = 360
-      bitrate_bps   = 1000000
-      frame_rate    = 30
-    },
-    "hd" = {
-      width_pixels  = 1280
-      height_pixels = 720
-      bitrate_bps   = 2500000
-      frame_rate    = 30
-    }
-  }
-}
-
-variable "audio_definition" {
-  description = "An object defining the audio elementary stream."
-  type = object({
-    codec       = string
-    bitrate_bps = number
-  })
-  default = {
-    codec       = "aac"
-    bitrate_bps = 64000
-  }
-}
-
 variable "message_retention_duration" {
   description = "The duration for which messages are retained in the Pub/Sub topic (in seconds)."
   type        = string

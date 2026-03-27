@@ -7,35 +7,45 @@ resource "google_transcoder_job_template" "apex_transcoder_job_template" {
     pubsub_destination {
       topic = var.pubsub_topic
     }
+
     dynamic "elementary_streams" {
-      for_each = var.video_definitions
+      for_each = var.video_streams
       content {
         key = "video-${elementary_streams.key}"
         video_stream {
           h264 {
-            height_pixels = elementary_streams.value.height_pixels
-            width_pixels  = elementary_streams.value.width_pixels
-            bitrate_bps   = elementary_streams.value.bitrate_bps
-            frame_rate    = elementary_streams.value.frame_rate
+            width_pixels  = elementary_streams.value.width
+            height_pixels = elementary_streams.value.height
+            bitrate_bps   = elementary_streams.value.bitrate
+            frame_rate    = var.frame_rate
+            profile       = var.h264_profile
           }
         }
       }
     }
 
     elementary_streams {
-      key = "audio-stream0"
+      key = "audio_acc"
       audio_stream {
-        codec       = var.audio_definition.codec
-        bitrate_bps = var.audio_definition.bitrate_bps
+        codec             = var.audio_config.codec
+        bitrate_bps       = var.audio_config.bitrate_bps
+        channel_count     = var.audio_config.channel_count
+        sample_rate_hertz = var.audio_config.sample_rate_hertz
       }
     }
 
     dynamic "mux_streams" {
-      for_each = var.video_definitions
+      for_each = var.video_streams
       content {
-        key                = mux_streams.key
-        container          = "mp4"
-        elementary_streams = ["video-${mux_streams.key}", "audio-stream0"]
+        key       = "ts-${mux_streams.key}"
+        container = "ts"
+        elementary_streams = [
+          "video-${mux_streams.key}",
+          "audio_acc"
+        ]
+        segment_settings {
+          segment_duration = var.segment_duration
+        }
       }
     }
   }
