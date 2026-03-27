@@ -48,9 +48,8 @@ resource "google_pubsub_topic" "apex_pubsub_topic_for_transcoder_dead_letter" {
 }
 
 resource "google_pubsub_subscription" "apex_callback_subscription" {
-  name  = var.apex_callback_subscription_name
-  topic = google_pubsub_topic.apex_pubsub_topic.id
-
+  name                 = var.apex_callback_subscription_name
+  topic                = google_pubsub_topic.apex_pubsub_topic.id
   ack_deadline_seconds = 180
 
 }
