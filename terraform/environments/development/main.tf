@@ -20,12 +20,10 @@ module "iam" {
 }
 
 module "transcoder" {
-  source            = "../../modules/transcoder"
-  project_id        = var.project_id
-  project_region    = var.project_region
-  video_definitions = var.video_definitions
-  audio_definition  = var.audio_definition
-  pubsub_topic      = module.pubsub.topic_id
+  source         = "../../modules/transcoder"
+  project_id     = var.project_id
+  project_region = var.project_region
+  pubsub_topic   = module.pubsub.topic_id
 }
 
 module "registry" {
