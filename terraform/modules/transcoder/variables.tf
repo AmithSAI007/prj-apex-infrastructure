@@ -92,19 +92,17 @@ variable "h264_profile" {
 
 variable "audio_config" {
   description = "Audio stream configuration"
-  type = map(object({
+  type = object({
     codec             = string
     bitrate_bps       = number
     sample_rate_hertz = number
     channel_count     = number
-  }))
+  })
   default = {
-    "audio_acc" = {
-      codec             = "aac"
-      bitrate_bps       = 128000
-      sample_rate_hertz = 48000
-      channel_count     = 2
-    }
+    codec             = "aac"
+    bitrate_bps       = 128000
+    sample_rate_hertz = 48000
+    channel_count     = 2
   }
 
   validation {
