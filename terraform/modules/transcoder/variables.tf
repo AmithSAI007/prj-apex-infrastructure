@@ -123,7 +123,7 @@ variable "audio_config" {
   }
 
   validation {
-    condition     = "contains([1, 2], var.audio_config.channel_count)"
+    condition     = contains([1, 2], var.audio_config.channel_count)
     error_message = "Audio channel count must be either 1 (mono) or 2 (stereo)."
   }
 }
