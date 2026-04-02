@@ -119,7 +119,7 @@ variable "update_track" {
 variable "enable_public_ip" {
   type        = bool
   description = "Whether to enable public IP for the Cloud SQL instance."
-  default     = false
+  default     = true
 }
 
 variable "vpc_network_id" {
