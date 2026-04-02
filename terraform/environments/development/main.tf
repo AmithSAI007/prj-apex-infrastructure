@@ -37,3 +37,11 @@ module "firestore" {
   project_id     = var.project_id
   project_region = var.project_region
 }
+
+module "cloudsql" {
+  source         = "../../modules/cloudsql"
+  project_id     = var.project_id
+  project_region = var.project_region
+  instance_name  = var.cloudsql_instance_name
+  database_name  = var.cloudsql_database_name
+}

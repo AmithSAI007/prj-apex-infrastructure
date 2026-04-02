@@ -33,3 +33,16 @@ variable "max_delivery_attempts" {
   type        = number
   default     = 5
 }
+
+# Cloud SQL PostgreSQL Variables
+variable "cloudsql_instance_name" {
+  description = "The name of the Cloud SQL PostgreSQL instance."
+  type        = string
+  default     = "apex-dev-cloudsql-postgres"
+}
+
+variable "cloudsql_database_name" {
+  description = "The name of the default database to create."
+  type        = string
+  default     = "apex_db"
+}
