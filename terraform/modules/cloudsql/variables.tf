@@ -122,6 +122,18 @@ variable "enable_public_ip" {
   default     = true
 }
 
+variable "enable_private_path" {
+  type        = bool
+  description = "Whether to enable private path for Google Cloud services. Only applicable when using private network."
+  default     = false
+}
+
+variable "ssl_mode" {
+  type        = string
+  description = "The SSL mode for the Cloud SQL instance. Options: ALLOW_UNENCRYPTED_AND_ENCRYPTED, ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
+  default     = "ENCRYPTED_ONLY"
+}
+
 variable "vpc_network_id" {
   type        = string
   description = "The ID of the VPC network for private connectivity."

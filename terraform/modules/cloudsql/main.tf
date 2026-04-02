@@ -35,8 +35,8 @@ resource "google_sql_database_instance" "apex_postgres_instance" {
     ip_configuration {
       ipv4_enabled                                  = var.enable_public_ip
       private_network                               = var.vpc_network_id
-      enable_private_path_for_google_cloud_services = true
-      ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
+      enable_private_path_for_google_cloud_services = var.enable_private_path
+      ssl_mode                                      = var.ssl_mode
     }
 
     insights_config {
