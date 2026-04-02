@@ -35,7 +35,7 @@ variable "database_type" {
 variable "delete_protection_state" {
   type        = string
   description = "Indicates whether delete protection is enabled for the Firestore database."
-  default     = "DELETE_PROTECTION_ENABLED"
+  default     = "DELETE_PROTECTION_DISABLED"
 }
 
 variable "concurrency_mode" {
